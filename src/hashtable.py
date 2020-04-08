@@ -56,15 +56,17 @@ class HashTable:
         '''
         index = self._hash_mod(key)
 
-        pair = self.storage[index]
-        if pair is not None:
-            if pair.key != key:
-                print('Overwriting Value')
-                pair.key = key
-            pair.value = value
+        current_pair = self.storage[index]
+        last_pair = None
+        while current_pair is not None and current_pair.key != key:
+            last_pair = current_pair
+            current_pair = last_pair.next
+        if current_pair is not None:
+            current_pair.value = value
         else:
-            self.storage[index] = LinkedPair(key, value)
-
+            new_pair = LinkedPair(key, value)
+            new_pair.next = self.storage[index]
+            self.storage[index] = new_pair
     def remove(self, key):
         '''
         Remove the value stored with the given key.
@@ -74,11 +76,19 @@ class HashTable:
         Fill this in.
         '''
         index = self._hash_mod(key)
-        
-        if self.storage[index] is not None and self.storage[index].key == key:
-            self.storage[index] = None
-        else: 
-            print("Key does not exist")
+        current_pair = self.storage[index]
+        last_pair = None
+        while current_pair is not None and current_pair.key != key:
+            last_pair = current_pair
+            current_pair = last_pair.next
+        if current_pair is None:
+            print("ERROR: Unable to remove entry with key " + key)
+        else:
+            if last_pair is None:  # Removing the first element in the LL
+                self.storage[index] = current_pair.next
+            else:
+                last_pair.next = current_pair.next
+
 
 
     def retrieve(self, key):
@@ -91,11 +101,12 @@ class HashTable:
         '''
         index = self._hash_mod(key)
 
-        if self.storage[index] is not None and self.storage[index].key == key:
-            return self.storage[index].value
-
-        else:
-            return None
+        current_pair = self.storage[index]
+        
+        while current_pair is not None:
+            if(current_pair.key == key):
+                return current_pair.value
+            current_pair = current_pair.next
 
 
     def resize(self):
